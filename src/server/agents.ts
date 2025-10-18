@@ -10,9 +10,17 @@ import { clampCardCount } from "@/lib/constants";
 export type Card = { id: string; front: string; back: string };
 export type Deck = Card[];
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
+let client: OpenAI | null = null;
+
+function getClient() {
+  if (client) return client;
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey || apiKey.trim().length === 0) {
+    throw new Error("Missing OPENAI_API_KEY environment variable.");
+  }
+  client = new OpenAI({ apiKey });
+  return client;
+}
 
 function uid() {
   return Math.random().toString(36).slice(2, 10);
@@ -33,7 +41,7 @@ export async function generateDeck(
 - Avoid hallucinations; if unsure, keep generic or skip.
 - Return JSON with "cards":[{"front":"...","back":"..."}] (no extra commentary).`;
 
-  const completion = await client.chat.completions.create({
+  const completion = await getClient().chat.completions.create({
     model: "gpt-4o-mini",
     response_format: { type: "json_object" },
     messages: [
@@ -60,7 +68,7 @@ export async function generateDeck(
 }
 
 export async function explainCard(front: string) {
-  const completion = await client.chat.completions.create({
+  const completion = await getClient().chat.completions.create({
     model: "gpt-4o-mini",
     messages: [
       {
@@ -80,7 +88,7 @@ export async function gradeAnswer(
   correct: string,
   userAnswer: string
 ) {
-  const completion = await client.chat.completions.create({
+  const completion = await getClient().chat.completions.create({
     model: "gpt-4o-mini",
     response_format: { type: "json_object" },
     messages: [
