@@ -13,12 +13,13 @@ import {
 import { clampCardCount, MAX_CARDS, MIN_CARDS } from "@/lib/constants";
 import Flashcard from "@/components/Flashcard";
 
+type Level = "beginner" | "intermediate" | "advanced";
+const LEVEL_OPTIONS: Level[] = ["beginner", "intermediate", "advanced"];
+
 export default function Home() {
   // Generate deck
   const [topic, setTopic] = useState("");
-  const [level, setLevel] = useState<"beginner" | "intermediate" | "advanced">(
-    "beginner"
-  );
+  const [level, setLevel] = useState<Level>("beginner");
   const [nCardsInput, setNCardsInput] = useState("10");
   const [deck, setDeck] = useState<Card[]>([]);
   const [idx, setIdx] = useState(0);
@@ -125,8 +126,10 @@ export default function Home() {
         const deck = importDeckJSON(String(reader.result || ""));
         setSaved(loadSavedDecks());
         alert(`Imported: "${deck.name}"`);
-      } catch (err: any) {
-        alert(err?.message || "Failed to import.");
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "Failed to import.";
+        alert(message);
       } finally {
         e.target.value = "";
       }
@@ -176,11 +179,18 @@ export default function Home() {
                     <select
                       className="mt-1 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm transition focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
                       value={level}
-                      onChange={(e) => setLevel(e.target.value as any)}
+                      onChange={(e) => {
+                        const value = e.target.value as Level;
+                        if (LEVEL_OPTIONS.includes(value)) {
+                          setLevel(value);
+                        }
+                      }}
                     >
-                      <option value="beginner">Beginner</option>
-                      <option value="intermediate">Intermediate</option>
-                      <option value="advanced">Advanced</option>
+                      {LEVEL_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>

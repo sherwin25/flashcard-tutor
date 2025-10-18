@@ -67,27 +67,54 @@ export function exportDeckJSON(deck: SavedDeck): string {
   );
 }
 
+type RawCard = Record<string, unknown>;
+type RawDeck = {
+  name?: unknown;
+  topic?: unknown;
+  cards?: unknown;
+};
+
+function toCard(raw: RawCard): Card {
+  const id =
+    typeof raw.id === "string" && raw.id.trim().length > 0 ? raw.id : uid();
+  const front = typeof raw.front === "string" ? raw.front : String(raw.front ?? "");
+  const back = typeof raw.back === "string" ? raw.back : String(raw.back ?? "");
+  return { id, front, back };
+}
+
 export function importDeckJSON(jsonText: string): SavedDeck {
-  let parsed: any = {};
+  let parsed: unknown;
   try {
     parsed = JSON.parse(jsonText);
   } catch {
     throw new Error("Invalid JSON file.");
   }
-  if (!parsed || !Array.isArray(parsed.cards)) {
+
+  if (!parsed || typeof parsed !== "object") {
     throw new Error("Invalid deck format.");
   }
+
+  const rawDeck = parsed as RawDeck;
+  if (!Array.isArray(rawDeck.cards)) {
+    throw new Error("Invalid deck format.");
+  }
+
   const deck: SavedDeck = {
     id: uid(),
-    name: String(parsed.name || "Imported Deck"),
-    topic: String(parsed.topic || ""),
+    name:
+      typeof rawDeck.name === "string" && rawDeck.name.trim().length > 0
+        ? rawDeck.name
+        : "Imported Deck",
+    topic: typeof rawDeck.topic === "string" ? rawDeck.topic : "",
     createdAt: Date.now(),
-    cards: parsed.cards.map((c: any) => ({
-      id: c.id || uid(),
-      front: String(c.front ?? ""),
-      back: String(c.back ?? ""),
-    })),
+    cards: rawDeck.cards
+      .filter(
+        (card): card is RawCard =>
+          card !== null && typeof card === "object" && !Array.isArray(card)
+      )
+      .map((card) => toCard(card)),
   };
+
   const decks = readAll();
   decks.push(deck);
   writeAll(decks);
