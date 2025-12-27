@@ -36,7 +36,7 @@ export default function Flashcard({
           <p className="max-h-40 overflow-y-auto pr-2">
             {front}
           </p>
-          <span className="text-xs text-slate-400 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+          <span className="text-xs text-slate-400 transition-opacity duration-300">
             Tap to reveal answer
           </span>
         </div>
