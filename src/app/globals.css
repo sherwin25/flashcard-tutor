@@ -3,8 +3,13 @@
 body {
   font-family: "Inter", Arial, Helvetica, sans-serif;
   background: radial-gradient(circle at top, #dff4ff, #fef4ff);
+  background-attachment: fixed;
   color: #1f2933;
   min-height: 100vh;
+  /* Mobile Optimizations */
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
   line-height: 1.5;
 }
 
